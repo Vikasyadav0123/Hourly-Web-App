@@ -507,3 +507,18 @@ body[data-theme="dark"] label {
   min-width: 110px;
   text-align: center;
 }
+/* Reduce width of date input so the calendar icon stays close */
+#dayPicker {
+  width: 140px;           /* adjust between 120–160px depending on your choice */
+  padding-right: 6px;     /* reduces empty area before the calendar icon */
+}
+
+/* Reduce spacing inside date bar */
+.date-bar {
+  gap: 6px !important;    /* was 10px – now tighter */
+}
+
+/* Small adjustment to calendar icon alignment */
+#dayPicker::-webkit-calendar-picker-indicator {
+  margin-left: -4px;  /* pull icon closer toward text */
+}
