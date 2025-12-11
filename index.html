@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hourly Tracker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- ICONS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- jsPDF + autoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+
+  <h1>Hourly Tracker</h1>
+
+  <!-- TOP LAYOUT -->
+  <div class="top-layout">
+
+    <!-- DATE BAR -->
+    <div class="date-bar">
+      <div class="left-group">
+        <button id="prevDay"><i class="bi bi-arrow-left"></i> Prev</button>
+
+        <span id="dateLabel" class="date-label"></span>
+        <span id="clock" class="clock" aria-live="polite"></span>
+
+        <input type="date" id="dayPicker" />
+
+        <button id="nextDay">Next <i class="bi bi-arrow-right"></i></button>
+        <button id="todayBtn"><i class="bi bi-calendar-check"></i> Today</button>
+
+        <label for="themeSelect" class="theme-label">Theme</label>
+        <select id="themeSelect">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="blue">Ocean Blue</option>
+          <option value="green">Forest Green</option>
+        </select>
+
+        <button id="exportPdf"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+        <button id="exportCsv"><i class="bi bi-download"></i> CSV</button>
+      </div>
+
+      <div class="right-group">
+        <button id="resetDay"><i class="bi bi-trash3"></i> Reset</button>
+      </div>
+    </div>
+
+    <!-- SLOT SETTINGS -->
+    <div class="slot-settings">
+      <div class="slot-settings-row">
+
+        <div class="slot-setting">
+          <label for="slotStartTime">Day starts at</label>
+          <input type="time" id="slotStartTime" value="06:00">
+        </div>
+
+        <div class="slot-setting">
+          <label for="slotDurationValue">Slot length</label>
+          <div class="slot-duration-input">
+            <input type="number" id="slotDurationValue" min="1" max="600" value="60" />
+            <select id="slotDurationUnit">
+              <option value="minutes">Minutes</option>
+              <option value="hours">Hours</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="slot-setting">
+          <label class="invisible-label">Apply</label>
+          <button id="applySlotSettings" class="primary-btn">
+            <i class="bi bi-sliders"></i> Apply slots
+          </button>
+        </div>
+
+      </div>
+
+      <p class="slot-settings-hint">
+        Choose start time & interval (e.g., 1 hour, 46 min, etc.)
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- SLOTS PANEL -->
+  <div class="main-layout">
+    <section class="slots-panel">
+      <div id="container"></div>
+    </section>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toastContainer"></div>
+
+  <!-- MODAL -->
+  <div id="basicModalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-body">
+        <p id="modalMessage">No Entry Added</p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalClose" class="primary-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="app.js"></script>
+
+</body>
+</html>
