@@ -1,6 +1,7 @@
-// app.js — full JS (includes uncheckable radio behavior, keeps mic buttons unchanged)
+// app.js - full updated JS
+// Mic-save fix + uncheckable radio toggle (keeps existing mic buttons & UI)
 
-// DEV ONLY: unregister all service workers (safe)
+// DEV ONLY: unregister all service workers
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
     regs.forEach(r => {
@@ -99,8 +100,17 @@ if (SpeechRecognition) {
       else interim += res[0].transcript;
     }
     if (activeTargetInput) {
+      // update the visible input field
       activeTargetInput.value = baseText + finalTranscript + interim;
-      if (activeTargetInput._slotRef) activeTargetInput._slotRef.saved = false;
+
+      // IMPORTANT: dispatch an 'input' event so the existing listeners inside renderSlots
+      // update the slot model, mark unsaved, and enable the Save button automatically.
+      activeTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Also mark stored flag false if slot ref present (defensive)
+      if (activeTargetInput._slotRef) {
+        activeTargetInput._slotRef.saved = false;
+      }
     }
   };
 
@@ -220,7 +230,7 @@ function generateSlotDefinitions(){
 /* ---------- storage & slots ---------- */
 
 function isSlotEmpty(s) {
-  const statusEmpty = (!s.status || s.status === "none");
+  const statusEmpty = (!s.status || s.status === "none" || s.status === "");
   return (
     (!s.planned || s.planned.trim() === "") &&
     (!s.done || s.done.trim() === "") &&
@@ -367,6 +377,7 @@ function renderSlots(slots){
     const saveLabel = box.querySelector(".save-label");
     const clearBtn = box.querySelector(".clear");
 
+    // attach a reference so recognition and input dispatch can access the slot object
     plannedInput._slotRef = s;
     doneInput._slotRef = s;
 
@@ -378,44 +389,41 @@ function renderSlots(slots){
     }
     updateSaveState();
 
+    // when user types (or when mic dispatches input), update slot model and enable Save
     plannedInput.addEventListener("input", (e) => { s.planned = e.target.value; markUnsaved(); updateSaveState(); });
     doneInput.addEventListener("input", (e) => { s.done = e.target.value; markUnsaved(); updateSaveState(); });
 
-    /* ---------- STATUS RADIO HANDLING (UNSELECTABLE/TOGGLE) ----------
-       - mousedown: record previous checked state
-       - click: if previously checked, prevent default and uncheck; then dispatch change
-       - change: update slot state normally
+    /* ---------- STATUS RADIO HANDLING (toggleable) ----------
+       Use mousedown to remember prior checked state, then on click if it was already checked
+       we uncheck it and dispatch change so rest of logic runs. This approach avoids blocking
+       normal checking behavior when it wasn't already checked.
     */
     statusRadios.forEach(r => {
-      // record whether radio was checked BEFORE the click
-      r.addEventListener('mousedown', () => {
+      // remember whether it was checked before user interaction
+      r.addEventListener('mousedown', (ev) => {
         r._wasChecked = r.checked;
       });
 
       r.addEventListener('click', (ev) => {
-        // if it was checked before click, user intends to uncheck it -> toggle off
         if (r._wasChecked) {
-          ev.preventDefault(); // prevent default selection behavior
-          // Uncheck after a microtask to avoid fighting browser internals, then fire change
+          // user clicked on already-checked radio -> uncheck it and dispatch change
+          // do this in microtask so browser's native click handling is settled
           setTimeout(() => {
-            // uncheck the radio
             r.checked = false;
-            // dispatch change to update UI/state
-            const changeEvent = new Event('change', { bubbles: true });
-            r.dispatchEvent(changeEvent);
+            r._wasChecked = false;
+            r.dispatchEvent(new Event('change', { bubbles: true }));
           }, 0);
-          return;
         }
-        // otherwise, allow normal behavior (change event will fire)
+        // otherwise normal behavior will check the radio and change handler below will run
       });
 
+      // change handler updates slot state & UI
       r.addEventListener("change", (e) => {
-        // find which radio in the group is now checked (if any)
         const groupName = r.name;
         const group = box.querySelectorAll(`input[name="${groupName}"]`);
         let selected = "";
         group.forEach(g => { if (g.checked) selected = g.value; });
-        s.status = selected; // if none checked -> selected === ""
+        s.status = selected; // "" if none checked
         if (s.status === "half") {
           halfDetailRow.style.display = "block";
         } else {
